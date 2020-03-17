@@ -288,3 +288,5 @@ void listaAvioes(Fila *fil)
         std::cout << aux->codigo << decpouso << std::endl;
     }
 }
+
+/*Foi*/
