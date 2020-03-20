@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
-#include "main.h"
 #include "aviao.h"
 #include "fila.h"
 
@@ -13,19 +12,27 @@ void listaAvioes(Fila *fil);
 
 int main(int argc, char **argv)
 {
+    /*Declaracao de variaveis gerais*/
     int K, V, C, T, semente;
     int tempo, i;
-    int pistas[3];
+    int pistas[3]; //Representa situacao de cada pista
 
     pistas[0] = pistas[1] = pistas[2] = 0;
 
-    double totalCombEsperando = 0.0;
-    double totalCombSobrando = 0.0;
-    int pousaram = 0;
-    int decolaram = 0;
-    double totalEsperaPouso = 0.0;
-    double totalEsperaDecolagem = 0.0;
-    int quantosEmergencia = 0;
+    /*Variaveis usadas para calcular medias*/
+    double totalCombEsperando = 0.0; //Soma do combustivel de todos os avioes esperando
+    double totalCombSobrando = 0.0;  //Total de combustivel dos avioes que pousam
+    int pousaram = 0;  //Quantos avioes pousaram
+    int decolaram = 0; //Quantos avioes decolaram
+    double totalEsperaPouso = 0.0;     //Total de tempo que os avioes ja pousados esperaram
+    double totalEsperaDecolagem = 0.0; //Total de tempo que os avioes ja decolaram esperaram
+    int quantosEmergencia = 0; //Quantos avioes pousaram por emergencia no total
+
+    Fila q; //Fila de voos
+    Aviao *aux; //apontadores auxiliares para manipulacao da fila
+    Aviao *aux2;
+    aux = nullptr;
+    aux2 = nullptr;
 
     if (argc != 6)
     {
@@ -43,31 +50,26 @@ int main(int argc, char **argv)
 
     srand(semente);
 
-    Fila q;
-    Aviao *aux;
-    Aviao *aux2;
-    aux = nullptr;
-    aux2 = nullptr;
 
     /*Comeca simulacao*/
     for (tempo = 0; tempo < T; tempo++)
     {
         std::cout << "Simulacao para instante " << tempo << std::endl;
-        std::cout << "\n";
+        pulaLinha();
         /*Novos avioes*/
         geraNovos(K, C, V, &q);
 
         pulaLinha();
         /*Reseta flag para novos movimentos*/
-        for (aux = q.getPrimeiro(); aux != q.getUltimo(); aux = aux->prox)
+        for (aux = q.getPrimeiro(); aux != nullptr; aux = aux->prox)
         {
             aux->foiMovido = false;
         }
 
         /*Confere prioridades e ordena fila*/
-        for (aux = q.getPrimeiro(); aux != q.getUltimo(); aux = aux->prox)
+        for (aux = q.getPrimeiro(); aux != nullptr; aux = aux->prox)
         {
-            if (!(aux->foiMovido) && aux->checaPrio())
+            if (!(aux->foiMovido) && aux->checaPrio(C))
             {
                 if (aux->checaEmerg())
                 {
@@ -186,13 +188,13 @@ int main(int argc, char **argv)
         //Checa se restou voo emergencial na fila
         //Se sim, redireciona
         aux2 = q.getPrimeiro();
-        while (aux2->emergencia)
+        while (aux2->checaEmerg())
         {
             //Manda pra outro
             q.remove(aux2);
             std::string pous;
             pous = " redirecionado para outro aeroporto por uma emergencia";
-            std::cout << "Voo " << aux->codigo << pous << std::endl;
+            std::cout << "Voo " << aux2->codigo << pous << std::endl;
             /*Coloca tempo de seguranca da pista*/
             /*Deleta aviao que ja foi processado*/
             delete aux2;
@@ -210,6 +212,8 @@ int main(int argc, char **argv)
         }
 
         /*SAIDAS PEDIDAS*/
+        pulaLinha();
+        std::cout << "MEDIAS:" << std::endl;
         /*Lista de avioes esperando*/
         listaAvioes(&q);
         /*Medias de espera*/
@@ -231,6 +235,27 @@ int main(int argc, char **argv)
         std::cout << "Media de combustivel dos avioes que pousaram = " << totalCombSobrando/pousaram << std::endl;
         /*Quantos em emergencia*/
         std::cout << "Total de pousos de emergencia = " << quantosEmergencia << std::endl;
+        pulaLinha();
+        if(tempo!=T-1)
+        {
+            std::cout << "Pressione enter para proxima iteracao " << std::endl;
+            char c;
+            scanf("%c", &c);
+        }
+        else
+        {
+            std::cout << "Fim da simulacao." << std::endl;
+        }
+        pulaLinha();
+    }
+
+    /*Libera memoria do que sobrou na fila*/
+    while(q.total()!=0)
+    {
+        aux = q.getPrimeiro();
+        q.remove(aux);
+        delete aux;
+        aux = nullptr;
     }
     return 0;
 }

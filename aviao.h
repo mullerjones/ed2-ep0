@@ -2,8 +2,6 @@
 #define AVIAO_H
 
 #include <string>
-#define DECOLAGEM 1
-#define POUSO 2
 
 const std::string empresas[] = {"AM", "IP", "EN", "CB", "WU"};
 const std::string portos[] = {
@@ -35,9 +33,8 @@ public:
     void init(int seed, int C, int V);
     Aviao();
     ~Aviao();
-    bool checaPrio();
+    bool checaPrio(int C);
     bool checaEmerg();
-    void insere(Aviao *av);
 };
 
 Aviao::Aviao() {}
@@ -88,12 +85,12 @@ void Aviao::init(int seed, int C, int V)
     foiMovido = false;
 }
 
-bool Aviao::checaPrio()
+bool Aviao::checaPrio(int C)
 {
+    if(emergencia) return true;
     if(isPouso)
     {
-        if(emergencia) return true;
-        if(combustivel<10)
+        if(combustivel<C/5)
         {
             prioridade = true;
             return true;
